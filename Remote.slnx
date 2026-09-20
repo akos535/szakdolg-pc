@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Remote.Client/Remote.Client.csproj" />
+  <Project Path="Remote.Core.Tests/Remote.Core.Tests.csproj" />
+  <Project Path="Remote.Core/Remote.Core.csproj" />
+  <Project Path="Remote.Server/Remote.Server.csproj" />
+</Solution>
