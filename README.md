@@ -1,0 +1,1 @@
+# szakdolg-pc
