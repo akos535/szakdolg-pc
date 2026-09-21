@@ -2,7 +2,9 @@
 
 using Windows.Media.Control;
 using Windows.UI.Core;
-using Remote.Core;
+using Windows.Devices.Printers;
+
+using Remote.Core.Media;
 
 namespace Remote.Client;
 
@@ -13,7 +15,9 @@ internal class ClientProgram
     {
         Console.OutputEncoding = Encoding.UTF8;
 
-        MediaInfo? info = MediaProperties.GetMediaProperties();
+        GlobalSystemMediaTransportControlsSession session = SessionFetch.GetSession();
+
+        MediaInfo? info = MediaProperties.GetMediaProperties(session);
 
         if (info is not null)
         {
@@ -23,6 +27,7 @@ internal class ClientProgram
             Console.WriteLine($"Album: {info.Album}");
         }
 
+        Console.WriteLine(MediaController.PlayPause(session));
 
         return 0;
     }

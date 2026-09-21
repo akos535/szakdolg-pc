@@ -1,6 +1,6 @@
-﻿namespace Remote.Core;
+﻿namespace Remote.Core.Media;
 
-public sealed record MediaInfo(
+internal sealed record MediaInfo(
     string Title,
     string Artist,
     string Album,

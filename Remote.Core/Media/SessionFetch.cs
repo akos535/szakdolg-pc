@@ -1,9 +1,13 @@
 ﻿using Windows.Media.Control;
 
-namespace Remote.Core;
+namespace Remote.Core.Media;
 
-internal class SessionFetch
+internal static class SessionFetch
 {
+    internal static GlobalSystemMediaTransportControlsSession GetSession()
+    {
+        return GetSessionAsync().GetAwaiter().GetResult();
+    }
     internal static async Task<GlobalSystemMediaTransportControlsSession> GetSessionAsync()
     {
         GlobalSystemMediaTransportControlsSessionManager sessionManager =

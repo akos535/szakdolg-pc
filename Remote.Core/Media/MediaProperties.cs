@@ -1,17 +1,15 @@
 ﻿using Windows.Media.Control;
 
-namespace Remote.Core;
+namespace Remote.Core.Media;
 
-internal class MediaProperties : SessionFetch
+internal class MediaProperties
 {
-    internal static MediaInfo? GetMediaProperties()
+    internal static MediaInfo? GetMediaProperties(GlobalSystemMediaTransportControlsSession session)
     {
-        return Task.Run(() => GetMediaPropertiesAsync()).GetAwaiter().GetResult();
+        return GetMediaPropertiesAsync(session).GetAwaiter().GetResult();
     }
-    internal static async Task<MediaInfo?> GetMediaPropertiesAsync()
+    internal static async Task<MediaInfo?> GetMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession session)
     {
-        GlobalSystemMediaTransportControlsSession? session = await SessionFetch.GetSessionAsync();
-
         if (session is null) return null;
 
         GlobalSystemMediaTransportControlsSessionMediaProperties media =
