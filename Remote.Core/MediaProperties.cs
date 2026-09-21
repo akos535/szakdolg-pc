@@ -1,44 +1,29 @@
 ﻿using Windows.Media.Control;
 
-using static System.Collections.Specialized.BitVector32;
-
 namespace Remote.Core;
 
-internal class MediaProperties
+internal class MediaProperties : SessionFetch
 {
-    internal static Dictionary<string, string> GetMediaPropertiesAsync()
+    internal static MediaInfo? GetMediaProperties()
     {
-        return Task.Run(() => GetMediaProperties()).GetAwaiter().GetResult();
+        return Task.Run(() => GetMediaPropertiesAsync()).GetAwaiter().GetResult();
     }
-    internal static async Task<Dictionary<string, string>> GetMediaProperties()
+    internal static async Task<MediaInfo?> GetMediaPropertiesAsync()
     {
-        GlobalSystemMediaTransportControlsSession? session = await GetSessionAsync();
+        GlobalSystemMediaTransportControlsSession? session = await SessionFetch.GetSessionAsync();
 
+        if (session is null) return null;
 
-        if (session is null)
-        {
-            Console.WriteLine("Suck my fucking balls.");
-            return [];
-        }
-
-        Console.WriteLine($"App: {session.SourceAppUserModelId}");
         GlobalSystemMediaTransportControlsSessionMediaProperties media =
             await session.TryGetMediaPropertiesAsync();
 
-        Dictionary<string, string> info = new Dictionary<string, string>()
-        {
-            {"TITLE", media.Title},
-            {"ARTIST", media.Artist},
-            {"ALBUM", media.AlbumTitle}
-        };
+        MediaInfo info = new(
+            media.Title,
+            media.Artist,
+            media.AlbumTitle,
+            session.SourceAppUserModelId
+        );
 
         return info;
-    }
-    private static async Task<GlobalSystemMediaTransportControlsSession> GetSessionAsync()
-    {
-        GlobalSystemMediaTransportControlsSessionManager sessionManager =
-            await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-
-        return sessionManager.GetCurrentSession();
     }
 }

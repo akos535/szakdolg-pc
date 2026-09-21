@@ -13,12 +13,17 @@ internal class ClientProgram
     {
         Console.OutputEncoding = Encoding.UTF8;
 
-        Dictionary<string, string> info = MediaProperties.GetMediaPropertiesAsync();
+        MediaInfo? info = MediaProperties.GetMediaProperties();
 
-        foreach (var item in info)
+        if (info is not null)
         {
-            Console.WriteLine(item.Key + ": " + item.Value);
+            Console.WriteLine($"App: {info.SourceApp}");
+            Console.WriteLine($"Title: {info.Title}");
+            Console.WriteLine($"Artist: {info.Artist}");
+            Console.WriteLine($"Album: {info.Album}");
         }
+
+
         return 0;
     }
 }
