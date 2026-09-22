@@ -1,21 +1,42 @@
 ﻿using Windows.Media.Control;
 namespace Remote.Core.Media;
 
-internal static class MediaController
+internal class MediaController
 {
-    internal static bool PlayPause(GlobalSystemMediaTransportControlsSession session)
-    {
-        return PlayPauseAsync(session).GetAwaiter().GetResult();
-    }
-    internal static async Task<bool> PlayPauseAsync(GlobalSystemMediaTransportControlsSession session)
-    {
+    public readonly MediaSessionProvider _sessionProvider;
 
-        if(session is null)
-        {
-            Console.WriteLine("No session");
-            return false;
-        }
+    internal MediaController(MediaSessionProvider sessionProvider)
+    {
+        _sessionProvider = sessionProvider;
+    }
+
+    internal async Task<bool> PlayPauseAsync()
+    {
+        GlobalSystemMediaTransportControlsSession? session =
+            _sessionProvider.GetCurrentSession();
+
+        if (session is null) return false;
 
         return await session.TryTogglePlayPauseAsync();
+    }
+
+    internal async Task<bool> SkipNextAsync()
+    {
+        GlobalSystemMediaTransportControlsSession? session =
+            _sessionProvider.GetCurrentSession();
+
+        if (session is null) return false;
+
+        return await session.TrySkipNextAsync();
+    }
+
+    internal async Task<bool> SkipPreviousAsync()
+    {
+        GlobalSystemMediaTransportControlsSession? session =
+            _sessionProvider.GetCurrentSession();
+
+        if (session is null) return false;
+
+        return await session.TrySkipPreviousAsync();
     }
 }

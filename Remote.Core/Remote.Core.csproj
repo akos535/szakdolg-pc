@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Remote.Client"/>
+    <InternalsVisibleTo Include="Remote.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Audio\" />
+    <Folder Include="Input\" />
   </ItemGroup>
 </Project>
