@@ -12,6 +12,5 @@
 
   <ItemGroup>
     <Folder Include="Audio\" />
-    <Folder Include="Input\" />
   </ItemGroup>
 </Project>
