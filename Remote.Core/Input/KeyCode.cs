@@ -1,6 +1,6 @@
 ﻿namespace Remote.Core.Input;
 
-internal enum KeyCode : uint
+internal enum KeyCode :ushort
 {
     VK_LBUTTON = 0x01,
     VK_RBUTTON = 0x02,
@@ -33,6 +33,9 @@ internal enum KeyCode : uint
     VK_SNAPSHOT = 0x2C,
     VK_INSERT = 0x2D,
     VK_DELETE = 0x2E,
+    VK_LMENU = 0xA4,
+    VK_LWIN = 0x5B,
+    VK_APPS = 0x5D,
 
     // NUMBERS
     VK_ZERO = 0x30,
@@ -75,6 +78,8 @@ internal enum KeyCode : uint
     VK_Z = 0x5A,
 
     // HUN LETTERS
+    // https://kbdlayout.info/KBDHU/virtualkeys
+
     /// <summary>
     /// éÉ $
     /// </summary>
@@ -127,5 +132,11 @@ internal enum KeyCode : uint
     // VOLUME
     VK_VOLUME_MUTE = 0xAD,
     VK_VOLUME_DOWN = 0xAE,
-    VK_VOLUME_UP = 0xAF
+    VK_VOLUME_UP = 0xAF,
+
+    // MEDIA
+    VK_MEDIA_NEXT_TRACK = 0xB0,
+    VK_MEDIA_PREV_TRACK = 0xB1,
+    VK_MEDIA_STOP = 0xB2,
+    VK_MEDIA_PLAY_PAUSE = 0xB3
 }

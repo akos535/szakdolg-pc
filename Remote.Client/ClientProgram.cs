@@ -1,9 +1,4 @@
 ﻿using System.Text;
-
-using Windows.Media.Control;
-using Windows.UI.Core;
-using Windows.Devices.Printers;
-
 using Remote.Core.Media;
 
 namespace Remote.Client;
@@ -14,7 +9,7 @@ internal class ClientProgram
     public static int Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
-
+        
         MediaSessionProvider sessionProvider = MediaSessionProvider.CreateAsync().GetAwaiter().GetResult();
 
         MediaController mediaController = new(sessionProvider);
