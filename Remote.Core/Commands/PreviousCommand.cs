@@ -14,7 +14,7 @@ internal class PreviousCommand : ICommand
         _mediaController = mediaController;
     }
 
-    public Task ExecuteAsync(JsonElement json, CancellationToken cancellationToken)
+    public Task ExecuteAsync(JsonElement payload, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

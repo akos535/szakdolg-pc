@@ -10,6 +10,6 @@ internal interface ICommand
     string Type { get; }
 
     Task ExecuteAsync(
-        JsonElement json,
+        JsonElement payload,
         CancellationToken cancellationToken);
 }

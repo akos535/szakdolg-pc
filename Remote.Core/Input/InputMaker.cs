@@ -22,7 +22,7 @@ internal partial class InputMaker
         };
 
         INPUT input2 = new INPUT { Type = (uint)InputType.Keyboard };
-        input.Data.Keyboard = new KEYBDINPUT()
+        input2.Data.Keyboard = new KEYBDINPUT()
         {
             VK = (ushort)keyCode,
             Scan = 0,

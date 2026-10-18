@@ -24,6 +24,7 @@ public static class ServerRunner
                 new PlayPauseCommand(mediaController),
                 new NextCommand(mediaController),
                 new PreviousCommand(mediaController),
+                new KeyPressCommand()
             });
 
 

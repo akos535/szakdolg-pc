@@ -14,7 +14,7 @@ internal sealed class PlayPauseCommand : ICommand
         _mediaController = mediaController;
     }
 
-    public Task ExecuteAsync(JsonElement json, CancellationToken cancellationToken)
+    public Task ExecuteAsync(JsonElement paylaod, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

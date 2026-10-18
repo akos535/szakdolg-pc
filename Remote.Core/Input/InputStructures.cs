@@ -1,19 +1,23 @@
-﻿namespace Remote.Core.Input;
+﻿using System.Runtime.InteropServices;
+
+namespace Remote.Core.Input;
 
 /// <summary>
 /// https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-input
 /// </summary>
+[StructLayout(LayoutKind.Sequential)]
 internal struct INPUT
 {
     internal uint Type;
     internal MKH_INPUT Data;
 }
 
+[StructLayout(LayoutKind.Explicit)]
 internal struct MKH_INPUT
 {
-    internal MOUSEINPUT Mouse;
-    internal KEYBDINPUT Keyboard;
-    internal HARDWAREINPUT Hardware;
+    [FieldOffset(0)] internal MOUSEINPUT Mouse;
+    [FieldOffset(0)] internal KEYBDINPUT Keyboard;
+    [FieldOffset(0)] internal HARDWAREINPUT Hardware;
 }
 
 internal enum InputType : uint
@@ -26,6 +30,7 @@ internal enum InputType : uint
 /// <summary>
 /// https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-mouseinput
 /// </summary>
+[StructLayout(LayoutKind.Sequential)]
 internal struct MOUSEINPUT
 {
     internal int X;
@@ -39,6 +44,7 @@ internal struct MOUSEINPUT
 /// <summary>
 /// https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-keybdinput
 /// </summary>
+[StructLayout(LayoutKind.Sequential)]
 internal struct KEYBDINPUT
 {
     internal ushort VK;
@@ -51,6 +57,7 @@ internal struct KEYBDINPUT
 /// <summary>
 /// https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-hardwareinput
 /// </summary>
+[StructLayout(LayoutKind.Sequential)]
 internal struct HARDWAREINPUT
 {
     internal uint Msg;
