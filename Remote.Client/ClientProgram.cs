@@ -1,5 +1,6 @@
 ﻿using System.Text;
-using Remote.Core.Media;
+
+using Remote.Server;
 
 namespace Remote.Client;
 
@@ -9,7 +10,8 @@ internal class ClientProgram
     public static int Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
-        
+
+        /*
         MediaSessionProvider sessionProvider = MediaSessionProvider.CreateAsync().GetAwaiter().GetResult();
 
         MediaController mediaController = new(sessionProvider);
@@ -52,7 +54,9 @@ internal class ClientProgram
                 default:
                     break;
             }
-        }
+        }*/
+
+        ServerRunner.Run();
 
         return 0;
     }

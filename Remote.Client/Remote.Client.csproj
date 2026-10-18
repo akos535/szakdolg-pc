@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Remote.Core\Remote.Core.csproj" />
+    <ProjectReference Include="..\Remote.Server\Remote.Server.csproj" />
   </ItemGroup>
 
 </Project>
