@@ -14,16 +14,12 @@ public static class ServerRunner
     private static async Task RunAsync()
     {
         MediaSessionProvider sessionProvider = MediaSessionProvider.CreateAsync().GetAwaiter().GetResult();
-
-        MediaController mediaController = new(sessionProvider);
+        
         MediaInfoProvider mediaInfoProvider = new(sessionProvider);
 
         CommandHandler handler = new CommandHandler(
             new ICommand[]
             {
-                new PlayPauseCommand(mediaController),
-                new NextCommand(mediaController),
-                new PreviousCommand(mediaController),
                 new KeyPressCommand()
             });
 

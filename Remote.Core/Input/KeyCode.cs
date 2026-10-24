@@ -1,6 +1,6 @@
 ﻿namespace Remote.Core.Input;
 
-internal enum KeyCode :ushort
+internal enum KeyCode : ushort
 {
     VK_LBUTTON = 0x01,
     VK_RBUTTON = 0x02,
