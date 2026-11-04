@@ -4,15 +4,16 @@ using Remote.Core.Media;
 
 namespace Remote.Server;
 
-public static class ServerRunner
+public sealed class ServerRunner : IAsyncDisposable
 {
-    public static void Run()
-    {
-        RunAsync().GetAwaiter().GetResult();
-    }
+    private RemoteServer _remoteServer;
+    private UdpServer _udpServer;
+    public bool IsRunning => _remoteServer != null;
 
-    private static async Task RunAsync()
+    public async Task StartAsync()
     {
+        if (IsRunning) return;
+
         MediaSessionProvider sessionProvider = MediaSessionProvider.CreateAsync().GetAwaiter().GetResult();
         
         MediaInfoProvider mediaInfoProvider = new(sessionProvider);
@@ -25,13 +26,34 @@ public static class ServerRunner
             });
 
 
-        await using RemoteServer server = new(handler, mediaInfoProvider);
-        await using UdpServer udpServer = new(handler);
+        RemoteServer remoteServer = new(handler, mediaInfoProvider);
+        UdpServer udpServer = new(handler);
 
-        await server.StartAsync();
-        await udpServer.StartAsync();
+        try
+        {
+            await remoteServer.StartAsync();
+            await udpServer.StartAsync();
 
-        Console.WriteLine("Server started. Press Enter to stop.");
-        await Task.Run(() => Console.ReadLine());
+            _remoteServer = remoteServer;
+            _udpServer = udpServer;
+        }
+        catch
+        {
+            await remoteServer.DisposeAsync();
+            await udpServer.DisposeAsync();
+            throw;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if(_remoteServer != null)
+        {
+            await _remoteServer.DisposeAsync();
+        }
+        if (_udpServer != null)
+        {
+            await _udpServer.DisposeAsync();
+        }
     }
 }
