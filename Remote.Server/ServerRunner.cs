@@ -20,13 +20,16 @@ public static class ServerRunner
         CommandHandler handler = new CommandHandler(
             new ICommand[]
             {
-                new KeyPressCommand()
+                new KeyPressCommand(),
+                new MouseMoveCommand()
             });
 
 
-        await using var server = new RemoteServer(handler);
+        await using RemoteServer server = new(handler, mediaInfoProvider);
+        await using UdpServer udpServer = new(handler);
 
         await server.StartAsync();
+        await udpServer.StartAsync();
 
         Console.WriteLine("Server started. Press Enter to stop.");
         await Task.Run(() => Console.ReadLine());

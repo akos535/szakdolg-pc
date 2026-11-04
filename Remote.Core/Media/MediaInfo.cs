@@ -4,5 +4,7 @@ internal sealed record MediaInfo(
     string Title,
     string Artist,
     string Album,
-    string SourceApp
+    string SourceApp,
+    byte[]? Thumbnail = null,
+    string? ThumbnailContentType = null
 );

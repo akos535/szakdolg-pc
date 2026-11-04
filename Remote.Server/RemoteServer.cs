@@ -9,17 +9,24 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Remote.Core.Command_Handlers;
+using Remote.Core.Media;
 
 namespace Remote.Server;
 
-public sealed class RemoteServer : IAsyncDisposable
+internal sealed class RemoteServer : IAsyncDisposable
 {
     private WebApplication? _app;
     private readonly ICommandHandler _commandHandler;
+    private readonly MediaInfoProvider _mediaInfoProvider;
+    private readonly JsonSerializerOptions _options = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
-    public RemoteServer(ICommandHandler commandHandler)
+    public RemoteServer(ICommandHandler commandHandler, MediaInfoProvider mediaInfoProvider)
     {
         _commandHandler = commandHandler;
+        _mediaInfoProvider = mediaInfoProvider;
     }
 
     public async Task StartAsync()
@@ -27,10 +34,10 @@ public sealed class RemoteServer : IAsyncDisposable
         if (_app is not null)
             return;
 
-        var builder = WebApplication.CreateBuilder();
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
         app.UseWebSockets();
 
@@ -42,12 +49,13 @@ public sealed class RemoteServer : IAsyncDisposable
                 return;
             }
 
-            using var socket = await context.WebSockets.AcceptWebSocketAsync();
+            using WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
 
             Console.WriteLine("Phone connected.");
             
             try
             {
+                await SendMediaInfoAsync(socket, context.RequestAborted);
                 await RecieveMessagesAsync(socket, context.RequestAborted);
             }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
@@ -73,13 +81,14 @@ public sealed class RemoteServer : IAsyncDisposable
             throw;
         }
     }
+
     private async Task RecieveMessagesAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-        var buffer = new byte[4096];
+        byte[] buffer = new byte[4096];
 
         while (socket.State == WebSocketState.Open)
         {
-            using var message = new MemoryStream();
+            using MemoryStream message = new MemoryStream();
             WebSocketReceiveResult result;
 
             do
@@ -101,8 +110,8 @@ public sealed class RemoteServer : IAsyncDisposable
             }
             while (!result.EndOfMessage);
 
-            var bytes = message.ToArray();
-            var json = Encoding.UTF8.GetString(bytes);
+            byte[] bytes = message.ToArray();
+            string json = Encoding.UTF8.GetString(bytes);
 
             Console.WriteLine($"Recieved: {json}");
 
@@ -121,6 +130,30 @@ public sealed class RemoteServer : IAsyncDisposable
             }
         }
     }
+
+    private async Task SendMediaInfoAsync(WebSocket socket, CancellationToken cancellationToken)
+    {
+
+        Console.WriteLine("VERSION CHECK");
+        MediaInfo? mediaInfo = await _mediaInfoProvider.GetMediaPropertiesAsync();
+
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(
+            new
+            {
+                type = "media.info",
+                payload = mediaInfo
+            },_options);
+
+        await socket.SendAsync(
+            new ArraySegment<byte>(bytes),
+            WebSocketMessageType.Text,
+            endOfMessage: true,
+            cancellationToken: cancellationToken
+            );
+
+
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_app is null)
