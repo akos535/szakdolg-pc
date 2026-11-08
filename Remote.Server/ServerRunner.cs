@@ -14,18 +14,21 @@ public sealed class ServerRunner : IAsyncDisposable
     {
         if (IsRunning) return;
 
-        MediaSessionProvider sessionProvider = MediaSessionProvider.CreateAsync().GetAwaiter().GetResult();
+        MediaSessionProvider sessionProvider = await MediaSessionProvider.CreateAsync();
         
         MediaInfoProvider mediaInfoProvider = new(sessionProvider);
 
-        CommandHandler handler = new CommandHandler(
-            new ICommand[]
-            {
+        ICommand[] commands = [
                 new KeyPressCommand(),
+                new KeyDownCommand(),
+                new KeyUpCommand(),
                 new MouseMoveCommand(),
-                new MouseClickCommand()
-            });
+                new MouseClickCommand(),
+                new DelayCommand()
+            ];
 
+        ICommand macroCommand = new MacroCommand(commands);
+        CommandHandler handler = new(commands.Append(macroCommand));
 
         RemoteServer remoteServer = new(handler, mediaInfoProvider);
         UdpServer udpServer = new(handler);
