@@ -22,7 +22,8 @@ public sealed class ServerRunner : IAsyncDisposable
             new ICommand[]
             {
                 new KeyPressCommand(),
-                new MouseMoveCommand()
+                new MouseMoveCommand(),
+                new MouseClickCommand()
             });
 
 
