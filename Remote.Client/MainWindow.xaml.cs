@@ -15,6 +15,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        _serverRunner.StatusChanged += ServerRunner_StatusChanged;
+    }
+
+    private void ServerRunner_StatusChanged(object? sender, string message)
+    {
+        Dispatcher.Invoke(() => { StatusText.Text = message; });
     }
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
@@ -26,7 +33,6 @@ public partial class MainWindow : Window
         {
             await _serverRunner.StartAsync();
 
-            StatusText.Text = "Server running on ports 5000 and 5001";
             StopButton.IsEnabled = true;
         }
         catch(Exception ex)
@@ -48,6 +54,8 @@ public partial class MainWindow : Window
         _isClosing = true;
 
         await StopServerAsync();
+
+        _serverRunner.StatusChanged -= ServerRunner_StatusChanged;
     }
 
     private async Task StopServerAsync()

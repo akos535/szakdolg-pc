@@ -10,6 +10,13 @@ public sealed class ServerRunner : IAsyncDisposable
     private UdpServer _udpServer;
     public bool IsRunning => _remoteServer != null;
 
+    public event EventHandler<string>? StatusChanged;
+
+    private void RemoteServer_StatusChanged(object? sender, string message)
+    {
+        StatusChanged?.Invoke(this, message);
+    }
+
     public async Task StartAsync()
     {
         if (IsRunning) return;
@@ -31,6 +38,7 @@ public sealed class ServerRunner : IAsyncDisposable
         CommandHandler handler = new(commands.Append(macroCommand));
 
         RemoteServer remoteServer = new(handler, mediaInfoProvider);
+        remoteServer.StatusChanged += RemoteServer_StatusChanged;
         UdpServer udpServer = new(handler);
 
         try
@@ -53,6 +61,7 @@ public sealed class ServerRunner : IAsyncDisposable
     {
         if(_remoteServer != null)
         {
+            _remoteServer.StatusChanged -= RemoteServer_StatusChanged;
             await _remoteServer.DisposeAsync();
         }
         if (_udpServer != null)

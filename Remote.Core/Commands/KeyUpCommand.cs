@@ -9,7 +9,7 @@ namespace Remote.Core.Commands;
 
 internal class KeyUpCommand : ICommand
 {
-    public string Type => "keyboard.down";
+    public string Type => "keyboard.up";
 
     public Task ExecuteAsync(JsonElement payload, CancellationToken cancellationToken)
     {

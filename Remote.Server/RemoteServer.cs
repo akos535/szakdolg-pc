@@ -23,6 +23,8 @@ internal sealed class RemoteServer : IAsyncDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    public event EventHandler<string>? StatusChanged;
+
     public RemoteServer(ICommandHandler commandHandler, MediaInfoProvider mediaInfoProvider)
     {
         _commandHandler = commandHandler;
@@ -51,7 +53,7 @@ internal sealed class RemoteServer : IAsyncDisposable
 
             using WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
 
-            Console.WriteLine("Phone connected.");
+            ReportStatus("Phone connected");
             
             try
             {
@@ -60,11 +62,15 @@ internal sealed class RemoteServer : IAsyncDisposable
             }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
             {
-                Console.WriteLine("connection cancelled.");
+                ReportStatus("Phone disconnected");
             }
             catch(WebSocketException ex)
             {
-                Console.WriteLine($"connection lost : {ex.Message}");
+                ReportStatus($"Connection lost : {ex.Message}");
+            }
+            finally
+            {
+                ReportStatus("Phone disconnected");
             }
         });
 
@@ -73,7 +79,7 @@ internal sealed class RemoteServer : IAsyncDisposable
             await app.StartAsync();
             _app = app;
 
-            Console.WriteLine("Server listening on port 5000.");
+            ReportStatus("Waiting for phone");
         }
         catch
         {
@@ -133,8 +139,6 @@ internal sealed class RemoteServer : IAsyncDisposable
 
     private async Task SendMediaInfoAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-
-        Console.WriteLine("VERSION CHECK");
         MediaInfo? mediaInfo = await _mediaInfoProvider.GetMediaPropertiesAsync();
 
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(
@@ -152,6 +156,11 @@ internal sealed class RemoteServer : IAsyncDisposable
             );
 
 
+    }
+
+    private void ReportStatus(string message)
+    {
+        StatusChanged?.Invoke(this, message);
     }
 
     public async ValueTask DisposeAsync()
