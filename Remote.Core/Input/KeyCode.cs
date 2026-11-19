@@ -34,6 +34,7 @@ internal enum KeyCode : ushort
     VK_INSERT = 0x2D,
     VK_DELETE = 0x2E,
     VK_LMENU = 0xA4,
+    VK_RMENU = 0xA5,
     VK_LWIN = 0x5B,
     VK_APPS = 0x5D,
 

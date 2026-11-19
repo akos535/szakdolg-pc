@@ -52,18 +52,20 @@ internal sealed class RemoteServer : IAsyncDisposable
             }
 
             using WebSocket socket = await context.WebSockets.AcceptWebSocketAsync();
+            using CancellationTokenSource connectionCancellation = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
 
             ReportStatus("Phone connected");
             
             try
             {
-                await SendMediaInfoAsync(socket, context.RequestAborted);
-                await RecieveMessagesAsync(socket, context.RequestAborted);
+                Task receiveTask = RecieveMessagesAsync(socket, connectionCancellation.Token);
+                Task mediaTask = SendMediaInfoLoopAsync(socket, connectionCancellation.Token);
+
+                await receiveTask;
+                connectionCancellation.Cancel();
+                await mediaTask;
             }
-            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
-            {
-                ReportStatus("Phone disconnected");
-            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested){}
             catch(WebSocketException ex)
             {
                 ReportStatus($"Connection lost : {ex.Message}");
@@ -137,25 +139,41 @@ internal sealed class RemoteServer : IAsyncDisposable
         }
     }
 
-    private async Task SendMediaInfoAsync(WebSocket socket, CancellationToken cancellationToken)
+    private async Task SendMediaInfoLoopAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-        MediaInfo? mediaInfo = await _mediaInfoProvider.GetMediaPropertiesAsync();
+        string? previousMediaJson = null;
 
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(
-            new
+        try
+        {
+            while (socket.State == WebSocketState.Open)
             {
-                type = "media.info",
-                payload = mediaInfo
-            },_options);
+                MediaInfo? mediaInfo = await _mediaInfoProvider.GetMediaPropertiesAsync();
 
-        await socket.SendAsync(
-            new ArraySegment<byte>(bytes),
-            WebSocketMessageType.Text,
-            endOfMessage: true,
-            cancellationToken: cancellationToken
-            );
+                byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(
+                    new
+                    {
+                        type = "media.info",
+                        payload = mediaInfo
+                    }, _options);
 
+                string currentMediaJson = Encoding.UTF8.GetString(bytes);
 
+                if (currentMediaJson != previousMediaJson)
+                {
+                    await socket.SendAsync(
+                        new ArraySegment<byte>(bytes),
+                        WebSocketMessageType.Text,
+                        endOfMessage: true,
+                        cancellationToken: cancellationToken);
+
+                    previousMediaJson = currentMediaJson;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {}
+        catch (WebSocketException) {}
     }
 
     private void ReportStatus(string message)
