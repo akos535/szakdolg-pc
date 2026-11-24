@@ -17,11 +17,28 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _serverRunner.StatusChanged += ServerRunner_StatusChanged;
+        _serverRunner.ConnectionRequested += ServerRunner_ConnectionRequested;
     }
 
     private void ServerRunner_StatusChanged(object? sender, string message)
     {
+        if (_isClosing) return;
+
         Dispatcher.Invoke(() => { StatusText.Text = message; });
+    }
+
+    private Task<bool> ServerRunner_ConnectionRequested(string requester)
+    {
+        return Dispatcher.InvokeAsync(() =>
+        {
+            MessageBoxResult result = MessageBox.Show(
+                $"Allow {requester} to connect?",
+                "Connection request",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            return result == MessageBoxResult.Yes;
+        }).Task;
     }
 
     private async void StartButton_Click(object sender, RoutedEventArgs e)
@@ -56,6 +73,8 @@ public partial class MainWindow : Window
         await StopServerAsync();
 
         _serverRunner.StatusChanged -= ServerRunner_StatusChanged;
+
+        _ = Dispatcher.BeginInvoke(new Action(Close));
     }
 
     private async Task StopServerAsync()

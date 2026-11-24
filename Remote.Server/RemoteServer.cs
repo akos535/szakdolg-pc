@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 using Remote.Core.Command_Handlers;
 using Remote.Core.Media;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace Remote.Server;
 
@@ -23,6 +26,9 @@ internal sealed class RemoteServer : IAsyncDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    internal Func<string, Task<bool>>? ConnectionApproval {  get; set; }
+
+    public int Port { get; private set; }
     public event EventHandler<string>? StatusChanged;
 
     public RemoteServer(ICommandHandler commandHandler, MediaInfoProvider mediaInfoProvider)
@@ -37,7 +43,7 @@ internal sealed class RemoteServer : IAsyncDisposable
             return;
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
-        builder.WebHost.UseUrls("http://0.0.0.0:5000");
+        builder.WebHost.UseUrls("http://0.0.0.0:0");
 
         WebApplication app = builder.Build();
 
@@ -48,6 +54,14 @@ internal sealed class RemoteServer : IAsyncDisposable
             if (!context.WebSockets.IsWebSocketRequest)
             {
                 context.Response.StatusCode = 400;
+                return;
+            }
+
+            string requester = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown device";
+            bool approved = ConnectionApproval != null && await ConnectionApproval(requester);
+            if(!approved)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
             }
 
@@ -79,9 +93,16 @@ internal sealed class RemoteServer : IAsyncDisposable
         try
         {
             await app.StartAsync();
+
+            IServer server = app.Services.GetRequiredService<IServer>();
+            IServerAddressesFeature? addresses = server.Features.Get<IServerAddressesFeature>();
+
+            string address = addresses?.Addresses.First() ?? throw new InvalidOperationException("The WebSocket server did not expose a listening address.");
+
+            Port = new Uri(address).Port;
             _app = app;
 
-            ReportStatus("Waiting for phone");
+            ReportStatus($"Websocket server listening on port {Port}");
         }
         catch
         {

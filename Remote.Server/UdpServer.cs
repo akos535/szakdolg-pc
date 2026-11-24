@@ -15,9 +15,19 @@ internal class UdpServer : IAsyncDisposable
 
     private readonly ICommandHandler _commandHandler;
 
-    public UdpServer(ICommandHandler commandHandler)
+    private readonly int _webSocketPort;
+    private readonly HashSet<string> _approvedDevices = [];
+    private readonly HashSet<string> _deniedDevices = [];
+
+    public const int DiscoveryPort = 5001;
+    public int Port => DiscoveryPort;
+
+    internal Func<string, Task<bool>>? ConnectionApproval {  get; set; }
+
+    public UdpServer(ICommandHandler commandHandler, int webSocketPort)
     {
         _commandHandler = commandHandler;
+        _webSocketPort = webSocketPort;
     }
 
     public Task StartAsync()
@@ -27,14 +37,12 @@ internal class UdpServer : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        UdpClient udpClient = new(new IPEndPoint(IPAddress.Any, 5001));
+        UdpClient udpClient = new(new IPEndPoint(IPAddress.Any, DiscoveryPort));
         CancellationTokenSource cancellationTokenSource = new();
         _udpClient = udpClient;
         _cancellationTokenSource = cancellationTokenSource;
 
         _recieveTask = RecieveMessagesAsync(_udpClient, _cancellationTokenSource.Token);
-
-        Console.WriteLine("UDP server listening on port 5001.");
         return Task.CompletedTask;
     }
 
@@ -75,14 +83,31 @@ internal class UdpServer : IAsyncDisposable
                             type = "discovery.response",
                             requestId = requestId,
                             name = Environment.MachineName,
-                            webSocketPort = 5000,
-                            udpPort = 5001
+                            webSocketPort = _webSocketPort,
+                            udpPort = DiscoveryPort
                         });
 
                         await udpClient.SendAsync(response, result.RemoteEndPoint, cancellationToken);
                     }
                     else
                     {
+                        string requester = result.RemoteEndPoint.Address.ToString();
+
+                        if (_deniedDevices.Contains(requester)) continue;
+
+                        if(!_approvedDevices.Contains(requester))
+                        {
+                            bool approved = ConnectionApproval != null && await ConnectionApproval(requester);
+
+                            if(!approved)
+                            {
+                                _deniedDevices.Add(requester);
+                                continue;
+                            }
+
+                            _approvedDevices.Add(requester);
+                        }
+
                         await _commandHandler.HandleAsync(json, cancellationToken);
                     }
 

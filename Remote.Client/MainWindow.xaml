@@ -5,18 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Remote.Client"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Icon="/Assets/remote.ico"
+        Title="Remote app" Height="450" Width="450"
+        SizeToContent="WidthAndHeight"
+        MaxHeight="500"
+        MaxWidth="450"
+        ResizeMode="CanMinimize"
         Closing="Window_Closing">
-    <Grid Margin="20">
+    <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <TextBlock Text="Remote app"
-                   FontSize="26"
-                   FontWeight="Bold"/>
 
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal"
